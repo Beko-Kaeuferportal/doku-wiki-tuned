@@ -1,2 +1,6 @@
 conf/dokuwiki.php
+conf/local.php
+conf/users.auth.php
+conf/acl.auth.php
+conf/plugins.local.php
 data

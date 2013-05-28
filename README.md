@@ -2,10 +2,7 @@
 
 
 ## TODO Wiki-Software ##
-* install theme
 * tune theme for kp
-* install wysiwig-plugin
-* install index-menu-plugin
 * hack caching
 * extend mime-types
 * allow html|css|js
