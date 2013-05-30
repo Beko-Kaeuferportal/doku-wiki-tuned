@@ -1,0 +1,31 @@
+.breadcrumbs, 
+#dokuwiki__sitetools ul, 
+#dokuwiki__footer,
+body #dokuwiki__header h1 a > img{
+ display:none;
+}
+
+html, body{
+  background: url("img/bg.gif") repeat-x 0 -2px transparent !important;
+}
+
+body #dokuwiki__header h1 a{
+  background: url("img/kp-logo.png") no-repeat 0 0 transparent;
+  color: #999999;
+  display: block;
+  font-size: 19px;
+  font-style: italic;
+  height: 50px;
+  padding-top: 24px;
+  position: absolute;
+  width: 200px;
+}
+
+.dokuwiki div.page{
+  border-radius: 10px 0px 10px 10px !important;
+}
+
+#dw__toc{
+  border-bottom: 1px solid #CCCCCC;
+  border-bottom-left-radius: 5px;
+}

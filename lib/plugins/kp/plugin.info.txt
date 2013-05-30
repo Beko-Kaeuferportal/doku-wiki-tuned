@@ -1,0 +1,7 @@
+base   kp
+author Käuferportal
+email  it@kaeuferportal.de
+date   2013-05-30
+name   KP Plugin
+desc   KP Wiki Mod
+url    www.kaeuferportal.de

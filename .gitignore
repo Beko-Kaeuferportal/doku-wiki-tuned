@@ -4,3 +4,7 @@ conf/users.auth.php
 conf/acl.auth.php
 conf/plugins.local.php
 data
+/.buildpath
+/.project
+/install.php
+/.settings
