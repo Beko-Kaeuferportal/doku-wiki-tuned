@@ -8,3 +8,5 @@ data
 /.project
 /install.php
 /.settings
+.DS_Store
+Gemfile.lock
