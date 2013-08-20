@@ -1,5 +1,5 @@
-.breadcrumbs, 
-#dokuwiki__sitetools ul, 
+.breadcrumbs,
+#dokuwiki__sitetools ul,
 #dokuwiki__footer,
 body #dokuwiki__header h1 a > img{
  display:none;
@@ -29,3 +29,8 @@ body #dokuwiki__header h1 a{
   border-bottom: 1px solid #CCCCCC;
   border-bottom-left-radius: 5px;
 }
+
+body #dokuwiki__site{
+  max-width:none;
+}
+
