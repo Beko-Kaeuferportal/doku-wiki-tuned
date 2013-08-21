@@ -34,3 +34,6 @@ body #dokuwiki__site{
   max-width:none;
 }
 
+.dtree a.navSel{
+  font-weight:bold;
+}
