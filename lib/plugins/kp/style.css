@@ -37,3 +37,16 @@ body #dokuwiki__site{
 body .dtree a.navSel{
   font-weight:bold;
 }
+
+body .dokuwiki div.breadcrumbs div {
+    display: none;
+}
+
+#dokuwiki__header > div > hr{
+  display:none;
+  visibility:hidden;
+}
+
+body .dokuwiki div.breadcrumbs{
+  border: none;
+}
