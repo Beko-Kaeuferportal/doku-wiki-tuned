@@ -49,3 +49,86 @@ body .dokuwiki div.breadcrumbs div {
 body .dokuwiki div.breadcrumbs{
   border: none;
 }
+
+body .indexmenu_rmenu, body .indexmenu_rmenu li ul{
+  background: url("/lib/tpl/dokuwiki/images/page-gradient.png") repeat-x scroll left top #FBFAEF;
+  border-radius: 5px 5px 5px 5px;
+  border: 1px solid #AAAAAA;
+  text-align: left;
+  margin: 0;
+}
+
+body .indexmenu_rmenuhead {
+    background-color: #CCFFCC;
+    border-radius: 5px 5px 5px 5px;
+    color: #2B73B7;
+    font-weight: bold;
+    padding: 3px 5px;
+}
+
+body .indexmenu_titlemenu {
+  padding: 3px;
+}
+
+body .indexmenu_titlemenu b{
+  font-weight:normal;
+  font-style:italic
+}
+
+body .indexmenu_rmenu li a {
+    padding: 3px 7px;
+}
+
+body .indexmenu_rmenu li span.indexmenu_submenu {
+    display: none;
+}
+
+body .indexmenu_rmenu ul {
+  margin: 0;
+}
+
+body .indexmenu_rmenu li ul {
+    background: none repeat scroll 0 0 transparent;
+    border: medium none;
+    display: block !important;
+    position: relative;
+    padding-bottom: 0px;
+    top: 0;
+    left: 0;
+}
+
+body li a[title="Acls"],
+body li a[title="Purge cache"],
+body li a[title="Toc preview"],
+body li a[title="Create a new headpage inside this namespace"] ,
+body li a[title="Create a new headpage under this page"] ,
+body li a[title="Create a new start page under this page"]
+{
+  display:none;
+}
+
+body li a[title="Revisions"],
+body li a[title="Search for pages within this namespace"]{
+  padding-top:3px;
+}
+
+body .indexmenu_rmenu{
+  -moz-box-shadow:    0 0 40px #888;
+  -webkit-box-shadow: 0 0 40px #888;
+  box-shadow: 0 0 40px #888;
+}
+
+#dokuwiki__content h1,
+#dokuwiki__content h2,
+#dokuwiki__content h3,
+#dokuwiki__content h4,
+#dokuwiki__content h5,
+#dokuwiki__content h6
+{
+  text-shadow: 1px 1px 1px #aaa;
+}
+
+
+
+
+
