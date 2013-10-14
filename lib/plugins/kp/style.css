@@ -153,7 +153,7 @@ body .ace-doku {
   border-radius: 5px 5px 5px 5px;
 }
 
-body .dokuwiki div.page p{
+body .dokuwiki.mode_edit div.page p{
   display: none;
 }
 
