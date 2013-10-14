@@ -106,8 +106,9 @@ body li a[title="Purge cache"],
 body li a[title="Toc preview"],
 body li a[title="Create a new headpage inside this namespace"] ,
 body li a[title="Create a new headpage under this page"] ,
-body li a[title="Create a new start page under this page"]
-{
+body li a[title="Create a new start page under this page"],
+body li a[title="Create a new page inside this namespace"],
+body li a[title=""]{
   display:none;
 }
 
@@ -127,9 +128,13 @@ body .indexmenu_rmenu{
 #dokuwiki__content h3,
 #dokuwiki__content h4,
 #dokuwiki__content h5,
-#dokuwiki__content h6
-{
+#dokuwiki__content h6{
   text-shadow: 1px 1px 1px #aaa;
+}
+
+body li a[title="toHTML"],
+body li a[title="toTXT"]{
+  font-style: italic;
 }
 
 
