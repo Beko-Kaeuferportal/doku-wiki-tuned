@@ -19,7 +19,7 @@ namespace :deploy do
 
   task :clean_cache, :roles => :app do
     run <<-CMD
-      rm -Rf #{release_path}/data/cache/
+      rm -Rf #{release_path}/data/cache/*
     CMD
   end
 end
