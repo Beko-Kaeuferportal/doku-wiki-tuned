@@ -50,6 +50,17 @@ body .dokuwiki div.breadcrumbs{
   border: none;
 }
 
+body pre{
+  box-shadow: -4px -4px 0.5em -0.3em #CCCCCC inset;
+  -moz-box-shadow:    -4px -4px 0.5em -0.3em #CCCCCC inset;
+  -webkit-box-shadow: -4px -4px 0.5em -0.3em #CCCCCC inset;
+}
+
+body input, body textarea, body select {
+  border-radius: 4px 4px 4px 4px;
+}
+
+/*left menu*/
 body .indexmenu_rmenu, body .indexmenu_rmenu li ul{
   background: url("/lib/tpl/dokuwiki/images/page-gradient.png") repeat-x scroll left top #FBFAEF;
   border-radius: 5px 5px 5px 5px;
@@ -137,7 +148,13 @@ body li a[title="toTXT"]{
   font-style: italic;
 }
 
+/*editor*/
+body .ace-doku {
+  border-radius: 5px 5px 5px 5px;
+}
 
-
+body .dokuwiki div.page p{
+  display: none;
+}
 
 
