@@ -27,4 +27,4 @@ end
 
 after "deploy", "deploy:cleanup"
 after "deploy:create_symlink", "deploy:symlink_shared_folders"
-after "deploy:create_symlink", "clean_cache"
+after "deploy:create_symlink", "deploy:clean_cache"
