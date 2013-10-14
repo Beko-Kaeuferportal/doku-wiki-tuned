@@ -79,6 +79,10 @@ body .indexmenu_rmenu li a {
     padding: 3px 7px;
 }
 
+body .indexmenu_rmenu li a {
+    text-align: left;
+}
+
 body .indexmenu_rmenu li span.indexmenu_submenu {
     display: none;
 }
@@ -113,9 +117,9 @@ body li a[title="Search for pages within this namespace"]{
 }
 
 body .indexmenu_rmenu{
-  -moz-box-shadow:    0 0 40px #888;
-  -webkit-box-shadow: 0 0 40px #888;
-  box-shadow: 0 0 40px #888;
+  -moz-box-shadow:    0 0 10px #888;
+  -webkit-box-shadow: 0 0 10px #888;
+  box-shadow: 0 0 10px #888;
 }
 
 #dokuwiki__content h1,
