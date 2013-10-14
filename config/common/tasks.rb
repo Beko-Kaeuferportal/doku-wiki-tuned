@@ -16,8 +16,15 @@ namespace :deploy do
       rm -Rf #{release_path}/conf && ln -s #{shared_path}/conf #{release_path}/conf && ln -s #{shared_path}/data #{release_path}/data && ln -s #{shared_path}/tools #{release_path}/tools
     CMD
   end
+
+  task :clean_cache, :roles => :app do
+    run <<-CMD
+      rm -Rf #{release_path}/data/cache
+    CMD
+  end
 end
 
 
 after "deploy", "deploy:cleanup"
 after "deploy:create_symlink", "deploy:symlink_shared_folders"
+after "deploy:create_symlink", "clean_cache"
