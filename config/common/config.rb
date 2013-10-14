@@ -19,4 +19,5 @@ ssh_options[:user]          = "web1"
 ssh_options[:compression]   = false
 ssh_options[:forward_agent] = true
 
-set :copy_exclude, [ '.git' ]
+#dont remove gitfiles, so we can resync from server
+#set :copy_exclude, [ '.git' ]
