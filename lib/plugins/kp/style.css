@@ -134,15 +134,6 @@ body .indexmenu_rmenu{
   box-shadow: 0 0 10px #888;
 }
 
-#dokuwiki__content h1,
-#dokuwiki__content h2,
-#dokuwiki__content h3,
-#dokuwiki__content h4,
-#dokuwiki__content h5,
-#dokuwiki__content h6{
-  text-shadow: 1px 1px 1px #aaa;
-}
-
 body li a[title="toHTML"],
 body li a[title="toTXT"]{
   font-style: italic;
