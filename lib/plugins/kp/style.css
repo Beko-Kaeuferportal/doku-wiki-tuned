@@ -1,7 +1,12 @@
-#dokuwiki__sitetools ul,
+#dokuwiki__sitetools .media,
+#dokuwiki__sitetools .index,
 #dokuwiki__footer,
 body #dokuwiki__header h1 a > img{
  display:none;
+}
+
+body #dokuwiki__header #dokuwiki__sitetools li {
+  margin-left: 0;
 }
 
 html, body{
@@ -33,10 +38,6 @@ body #dokuwiki__site{
   max-width:none;
 }
 
-body .dtree a.navSel{
-  font-weight:bold;
-}
-
 body .dokuwiki div.breadcrumbs div {
     display: none;
 }
@@ -61,6 +62,11 @@ body input, body textarea, body select {
 }
 
 /*left menu*/
+
+body .dtree a.navSel{
+  font-weight:bold;
+}
+
 body .indexmenu_rmenu, body .indexmenu_rmenu li ul{
   background: url("/lib/tpl/dokuwiki/images/page-gradient.png") repeat-x scroll left top #FBFAEF;
   border-radius: 5px 5px 5px 5px;
