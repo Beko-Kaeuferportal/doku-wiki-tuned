@@ -57,19 +57,30 @@ body pre{
   -webkit-box-shadow: -4px -4px 0.5em -0.3em #CCCCCC inset;
 }
 
-body input, body textarea, body select {
+body input, body textarea, body select, body pre, body code {
   border-radius: 4px 4px 4px 4px;
 }
 
-pre.avrasm, code.avrasm {
-  background: none repeat scroll 0 0 #EFEFEF;
+body pre.code, body pre {
+  background: none repeat scroll 0 0 #fafafa;
   box-shadow: -4px -4px 0.5em -0.3em #CCCCCC inset;
   -moz-box-shadow:    -4px -4px 0.5em -0.3em #CCCCCC inset;
   -webkit-box-shadow: -4px -4px 0.5em -0.3em #CCCCCC inset;
   color: #000000;
   display: block;
-  padding: 10px;
+  padding: 5px 10px;
+  margin: 5px 0;
   border:1px solid #bbb;
+}
+
+body pre code{
+  box-shadow: none;
+  border: none;
+  background: transparent;
+}
+
+body input, body textarea, body select {
+  border-radius: 4px 4px 4px 4px;
 }
 
 /*left menu*/
@@ -177,8 +188,8 @@ body code{
   box-shadow: none;
 }
 
-body pre, body code, body samp, body kbd, body pre code{
+/*body pre, body code, body samp, body kbd, body pre code{
   box-shadow: none;
   background: transparent;
   border:none;
-}
+}*/
