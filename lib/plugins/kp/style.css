@@ -61,6 +61,17 @@ body input, body textarea, body select {
   border-radius: 4px 4px 4px 4px;
 }
 
+pre.avrasm, code.avrasm {
+  background: none repeat scroll 0 0 #EFEFEF;
+  box-shadow: -4px -4px 0.5em -0.3em #CCCCCC inset;
+  -moz-box-shadow:    -4px -4px 0.5em -0.3em #CCCCCC inset;
+  -webkit-box-shadow: -4px -4px 0.5em -0.3em #CCCCCC inset;
+  color: #000000;
+  display: block;
+  padding: 10px;
+  border:1px solid #bbb;
+}
+
 /*left menu*/
 
 body .dtree a.navSel{
