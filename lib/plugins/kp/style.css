@@ -25,6 +25,14 @@ body #dokuwiki__header h1 a{
   width: 200px;
 }
 
+a.support{
+  font-size: 20px;
+}
+
+body a.support:hover{
+  text-decoration: none;
+}
+
 .dokuwiki div.page{
   border-radius: 10px 0px 10px 10px !important;
 }
