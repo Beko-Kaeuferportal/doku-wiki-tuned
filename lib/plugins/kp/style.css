@@ -79,14 +79,12 @@ body pre.code, body pre {
   padding: 5px 10px;
   margin: 5px 0;
   border:1px solid #bbb;
-  border-radius: 2px;
 }
 
 body pre code{
   box-shadow: none;
   border: none;
   background: transparent;
-  border-radius: 2px;
 }
 
 body input, body textarea, body select {
