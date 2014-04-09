@@ -70,7 +70,7 @@ body input, body textarea, body select, body pre, body code {
 }
 
 body pre.code, body pre {
-  background: none repeat scroll 0 0 #fafafa;
+  background: none repeat scroll 0 0 #fefefe;
   box-shadow: -4px -4px 0.5em -0.3em #CCCCCC inset;
   -moz-box-shadow:    -4px -4px 0.5em -0.3em #CCCCCC inset;
   -webkit-box-shadow: -4px -4px 0.5em -0.3em #CCCCCC inset;
@@ -79,12 +79,14 @@ body pre.code, body pre {
   padding: 5px 10px;
   margin: 5px 0;
   border:1px solid #bbb;
+  border-radius: 2px;
 }
 
 body pre code{
   box-shadow: none;
   border: none;
   background: transparent;
+  border-radius: 2px;
 }
 
 body input, body textarea, body select {
@@ -185,15 +187,16 @@ body .dokuwiki.mode_edit div.page p{
 }
 
 body code{
-  background: none repeat scroll 0 0 #FFFFFF;
-  border: 1px solid #DDDDDD;
+  background: none repeat scroll 0 0 #fefefe;
+  border: none;
   border-radius: 0.4em;
   color: #555555;
   display: inline-block;
   line-height: 1.5em;
   margin: -1px 0;
   padding: 0 0.3em;
-  box-shadow: none;
+  box-shadow: 0 0 3px #ddd;
+  border-radius: 2px;
 }
 
 /*body pre, body code, body samp, body kbd, body pre code{
