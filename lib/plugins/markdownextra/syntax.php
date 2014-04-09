@@ -101,9 +101,10 @@ class syntax_plugin_markdownextra extends DokuWiki_Syntax_Plugin {
     
     function _internallinks($text)
     {
+        $links = array();
+        if ( ! $text ) return $links;
         $doc = new DOMDocument('1.0', 'UTF-8');
         $doc->loadHTML($text);
-        $links = array();
         if ($nodes = $doc->getElementsByTagName('a')){
             foreach($nodes as $atag)
             {
@@ -140,7 +141,7 @@ class syntax_plugin_markdownextra extends DokuWiki_Syntax_Plugin {
         $html = $doc->saveHTML();
         $html = str_replace('<!DOCTYPE html>','',$html);
         $html = preg_replace('/.+<body>/', '', $html);
-        $html = str_replace('</body>','', $html);
+        $html = preg_replace('@</body>.*</html>@','', $html);
         return $html;
     }
 

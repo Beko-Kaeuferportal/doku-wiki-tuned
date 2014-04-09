@@ -92,16 +92,24 @@ class auth_plugin_authad extends DokuWiki_Auth_Plugin {
         }
 
         // Prepare SSO
-        if(!utf8_check($_SERVER['REMOTE_USER'])) {
-            $_SERVER['REMOTE_USER'] = utf8_encode($_SERVER['REMOTE_USER']);
-        }
-        if($_SERVER['REMOTE_USER'] && $this->conf['sso']) {
-            $_SERVER['REMOTE_USER'] = $this->cleanUser($_SERVER['REMOTE_USER']);
+        if(!empty($_SERVER['REMOTE_USER'])) {
 
-            // we need to simulate a login
-            if(empty($_COOKIE[DOKU_COOKIE])) {
-                $INPUT->set('u', $_SERVER['REMOTE_USER']);
-                $INPUT->set('p', 'sso_only');
+            // make sure the right encoding is used
+            if($this->getConf('sso_charset')) {
+                $_SERVER['REMOTE_USER'] = iconv($this->getConf('sso_charset'), 'UTF-8', $_SERVER['REMOTE_USER']);
+            } elseif(!utf8_check($_SERVER['REMOTE_USER'])) {
+                $_SERVER['REMOTE_USER'] = utf8_encode($_SERVER['REMOTE_USER']);
+            }
+
+            // trust the incoming user
+            if($this->conf['sso']) {
+                $_SERVER['REMOTE_USER'] = $this->cleanUser($_SERVER['REMOTE_USER']);
+
+                // we need to simulate a login
+                if(empty($_COOKIE[DOKU_COOKIE])) {
+                    $INPUT->set('u', $_SERVER['REMOTE_USER']);
+                    $INPUT->set('p', 'sso_only');
+                }
             }
         }
 
@@ -489,6 +497,11 @@ class auth_plugin_authad extends DokuWiki_Auth_Plugin {
             $this->cando['modPass'] = false;
         }
 
+        // adLDAP expects empty user/pass as NULL, we're less strict FS#2781
+        if(empty($opts['admin_username'])) $opts['admin_username'] = null;
+        if(empty($opts['admin_password'])) $opts['admin_password'] = null;
+
+        // user listing needs admin priviledges
         if(!empty($opts['admin_username']) && !empty($opts['admin_password'])) {
             $this->cando['getUsers'] = true;
         } else {
