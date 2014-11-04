@@ -6,3 +6,4 @@
  */
 
 $meta['tpl_dir']   = array('string');
+$meta['showexportbutton'] = array('onoff');

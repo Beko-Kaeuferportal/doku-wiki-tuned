@@ -9,9 +9,19 @@
 $lang['menu'] = 'Wiki Upgrade';
 
 // custom language strings for the plugin
-$lang['dl_from'] = 'Downloading archive from %s...';
-$lang['dl_fail'] = 'Download failed.';
-$lang['dl_done'] = 'Download completed (%s).';
+$lang['vs_php']     = 'New DokuWiki releases need at least PHP %s, but you\'re running %s. You should upgrade your PHP version before upgrading!';
+$lang['vs_tgzno']   = 'Could not determine the newest version of DokuWiki.';
+$lang['vs_tgz']     = 'DokuWiki <b>%s</b> is available for download.';
+$lang['vs_local']   = 'You\'re currently running DokuWiki <b>%s</b>.';
+$lang['vs_localno'] = 'It\'s not clear how old your currently running version is, manual upgrade is recommended.';
+$lang['vs_newer']   = 'It seems your current DokuWiki is even newer than the latest stable release. Upgrade not recommended.';
+$lang['vs_same']    = 'Your current DokuWiki is already up to date. No need for upgrading.';
+$lang['vs_plugin']  = 'There is a newer upgrade plugin available (%s) you should update the plugin before continuing.';
+$lang['vs_ssl']     = 'Your PHP seems not to support SSL streams, downloading the needed data will most likely fail. Upgrade manually instead.';
+
+$lang['dl_from']    = 'Downloading archive from %s...';
+$lang['dl_fail']    = 'Download failed.';
+$lang['dl_done']    = 'Download completed (%s).';
 $lang['pk_extract'] = 'Unpacking archive...';
 $lang['pk_fail']    = 'Unpacking failed.';
 $lang['pk_done']    = 'Unpacking completed.';
@@ -30,5 +40,14 @@ $lang['tv_done']    = 'updated <code>%s</code>';
 $lang['rm_done']    = 'Deprecated <code>%s</code> deleted.';
 $lang['rm_fail']    = 'Could not delete deprecated <code>%s</code>. <b>Please delete manually!</b>';
 $lang['finish']     = 'Upgrade completed. Enjoy your new DokuWiki';
+
+$lang['btn_continue'] = 'Continue';
+$lang['btn_abort']    = 'Abort';
+
+$lang['step_version']  = 'Check';
+$lang['step_download'] = 'Download';
+$lang['step_unpack']   = 'Unpack';
+$lang['step_check']    = 'Verify';
+$lang['step_upgrade']  = 'Install';
 
 //Setup VIM: ex: et ts=4 enc=utf-8 :

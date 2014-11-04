@@ -4,6 +4,7 @@
  *
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
  * @author     Aurelien Bompard <aurelien@bompard.org>
+ * @author	   Florian Lamml <info@florian-lamml.de>
  */
 // must be run within Dokuwiki
 if(!defined('DOKU_INC')) die();
@@ -25,6 +26,34 @@ class action_plugin_odt extends DokuWiki_Action_Plugin {
 
     function register($controller) {
         $controller->register_hook('PARSER_CACHE_USE','BEFORE', $this, 'handle_cache_prepare');
+		$controller->register_hook('TEMPLATE_PAGETOOLS_DISPLAY', 'BEFORE', $this, 'addbutton', array());
+    }
+	
+	 /**
+     * Add 'export odt'-button to pagetools
+     *
+     * @param Doku_Event $event
+     * @param mixed      $param not defined
+     */
+    public function addbutton(&$event, $param) {
+        global $ID, $REV, $conf;
+
+        if($this->getConf('showexportbutton') && $event->data['view'] == 'main') {
+            $params = array('do' => 'export_odt');
+            if($REV) $params['rev'] = $REV;
+
+            switch($conf['template']) {
+                case 'dokuwiki':
+                case 'arago':
+                    $event->data['items']['export_odt'] =
+                        '<li>'
+                        .'<a href='.wl($ID, $params).'  class="action export_odt" rel="nofollow" title="'.$this->getLang('export_odt_button').'">'
+                        .'<span>'.$this->getLang('export_odt_button').'</span>'
+                        .'</a>'
+                        .'</li>';
+                    break;
+            }
+        }
     }
 
     function handle_cache_prepare(&$event, $param) {

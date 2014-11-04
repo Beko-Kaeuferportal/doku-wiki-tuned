@@ -1,10 +1,7 @@
-Tiu kromaĵo aŭtomate aktualigas vian vikion al la plej freŝe havebla DokuWiki-versio tra jenaj paŝoj:
+Tiu kromaĵo aŭtomate aktualigos vian vikion al la plej freŝe havebla DokuWiki-versio. Antaŭ ol daŭrigi, legu [[doku>changes|la ŝanĝ-liston]] por kontroli, ĉu vi devus fari aldonajn paŝojn antaŭ aŭ post la aktualigo.
 
-  - Elŝutado de la nova DokuWiki-pakaĵo
-  - Malpakado de la pakaĵo
-  - Kontrolo de la necesaj permesoj
-  - Aktualigo de la vikiaj dosieroj
+Por permesi aŭtomatan aktualigon, la PHP-procezo bezonas skribpermeson por Dokuwiki-dosieroj. La kromaĵo kontrolos la necesajn dosierpermesojn antaŭ la komenco de la aktualigado.
 
-Por aŭtomata aktualigado ĉiuj aktualigendaj dosieroj devas esti skribeblaj de la PHP-procezo. La kromaĵo kontrolos la necesajn permesojn antaŭ komenci la aktualigan procezon.
+Tiu kromaĵo **ne aktualigos** instalitajn kromaĵojn aŭ ŝablonojn.
 
-Ne ĉiuj ajn instalitaj kromaĵoj aŭ ŝablonoj aktualiĝos. Estas tre rekomendata krei sekureckopion de via vikio antaŭ daŭrigi.
+Ni rekomendas, ke vi faru sekurkopion de via vikio antaŭ ol daŭrigi.

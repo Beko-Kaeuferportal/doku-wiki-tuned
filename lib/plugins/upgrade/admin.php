@@ -7,12 +7,8 @@
  */
 
 // must be run within Dokuwiki
-if (!defined('DOKU_INC')) die();
-
-if (!defined('DOKU_LF')) define('DOKU_LF', "\n");
-if (!defined('DOKU_TAB')) define('DOKU_TAB', "\t");
-if (!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
-
+if(!defined('DOKU_INC')) die();
+if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN', DOKU_INC.'lib/plugins/');
 require_once DOKU_PLUGIN.'admin.php';
 require_once DOKU_PLUGIN.'upgrade/VerboseTarLib.class.php';
 
@@ -20,40 +16,53 @@ class admin_plugin_upgrade extends DokuWiki_Admin_Plugin {
     private $tgzurl;
     private $tgzfile;
     private $tgzdir;
+    private $tgzversion;
+    private $pluginversion;
 
-    public function __construct(){
+    public function __construct() {
         global $conf;
 
         $branch = 'stable';
 
-        $this->tgzurl  = 'http://github.com/splitbrain/dokuwiki/tarball/'.$branch;
-        $this->tgzfile = $conf['tmpdir'].'/dokuwiki-upgrade.tgz';
-        $this->tgzdir  = $conf['tmpdir'].'/dokuwiki-upgrade/';
+        $this->tgzurl        = "https://github.com/splitbrain/dokuwiki/archive/$branch.tar.gz";
+        $this->tgzfile       = $conf['tmpdir'].'/dokuwiki-upgrade.tgz';
+        $this->tgzdir        = $conf['tmpdir'].'/dokuwiki-upgrade/';
+        $this->tgzversion    = "https://raw.githubusercontent.com/splitbrain/dokuwiki/$branch/VERSION";
+        $this->pluginversion = "https://raw.githubusercontent.com/splitbrain/dokuwiki-plugin-upgrade/master/plugin.info.txt";
     }
 
-    public function getMenuSort() { return 555; }
+    public function getMenuSort() {
+        return 555;
+    }
 
     public function handle() {
-        if($_REQUEST['step'] && !checkSecurityToken()){
+        if($_REQUEST['step'] && !checkSecurityToken()) {
             unset($_REQUEST['step']);
         }
     }
 
     public function html() {
-        global $ID;
         $abrt = false;
         $next = false;
 
-        echo '<h1>' . $this->getLang('menu') . '</h1>';
+        echo '<h1>'.$this->getLang('menu').'</h1>';
+
+        global $conf;
+        if($conf['safemodehack']) {
+            $abrt = false;
+            $next = false;
+            echo $this->locale_xhtml('safemode');
+            return;
+        }
 
         $this->_say('<div id="plugin__upgrade">');
         // enable auto scroll
         ?>
         <script language="javascript" type="text/javascript">
-            var plugin_upgrade = window.setInterval(function(){
-                var obj = $('plugin__upgrade');
-                if(obj) obj.scrollTop = obj.scrollHeight;
-            },25);
+            var plugin_upgrade = window.setInterval(function () {
+                var obj = document.getElementById('plugin__upgrade');
+                if (obj) obj.scrollTop = obj.scrollHeight;
+            }, 25);
         </script>
         <?php
 
@@ -63,9 +72,9 @@ class admin_plugin_upgrade extends DokuWiki_Admin_Plugin {
         // disable auto scroll
         ?>
         <script language="javascript" type="text/javascript">
-            window.setTimeout(function(){
+            window.setTimeout(function () {
                 window.clearInterval(plugin_upgrade);
-            },50);
+            }, 50);
         </script>
         <?php
         $this->_say('</div>');
@@ -74,57 +83,112 @@ class admin_plugin_upgrade extends DokuWiki_Admin_Plugin {
         echo '<input type="hidden" name="do" value="admin" />';
         echo '<input type="hidden" name="page" value="upgrade" />';
         echo '<input type="hidden" name="sectok" value="'.getSecurityToken().'" />';
-        if($next) echo '<input type="submit" name="step['.$next.']" value="Continue" class="button continue" />';
-        if($abrt) echo '<input type="submit" name="step[cancel]" value="Abort" class="button abort" />';
+        if($next) echo '<input type="submit" name="step['.$next.']" value="'.$this->getLang('btn_continue').' ➡" class="button continue" />';
+        if($abrt) echo '<input type="submit" name="step[cancel]" value="✖ '.$this->getLang('btn_abort').'" class="button abort" />';
         echo '</form>';
+
+        $this->_progress($next);
     }
 
-    private function _stepit(&$abrt, &$next){
-        global $conf;
-        if($conf['safemodehack']){
-            $abrt = false;
-            $next = false;
-            echo $this->locale_xhtml('safemode');
-        }
+    /**
+     * Display a progress bar of all steps
+     *
+     * @param string $next the next step
+     */
+    private function _progress($next) {
+        $steps  = array('version', 'download', 'unpack', 'check', 'upgrade');
+        $active = true;
+        $count = 0;
 
-        if(isset($_REQUEST['step']) && is_array($_REQUEST['step'])){
+        echo '<div id="plugin__upgrade_meter"><ol>';
+        foreach($steps as $step) {
+            $count++;
+            if($step == $next) $active = false;
+            if($active) {
+                echo '<li class="active">';
+                echo '<span class="step">✔</span>';
+            } else {
+                echo '<li>';
+                echo '<span class="step">'.$count.'</span>';
+            }
+
+            echo '<span class="stage">'.$this->getLang('step_'.$step).'</span>';
+            echo '</li>';
+        }
+        echo '</ol></div>';
+    }
+
+    /**
+     * Decides the current step and executes it
+     *
+     * @param bool $abrt
+     * @param bool $next
+     */
+    private function _stepit(&$abrt, &$next) {
+
+        if(isset($_REQUEST['step']) && is_array($_REQUEST['step'])) {
             $step = array_shift(array_keys($_REQUEST['step']));
-        }else{
+        } else {
             $step = '';
         }
 
-        if($step == 'cancel'){
+        if($step == 'cancel' || $step == 'done') {
             # cleanup
             @unlink($this->tgzfile);
             $this->_rdel($this->tgzdir);
-            $step = '';
+            if($step == 'cancel') $step = '';
         }
 
-        if($step){
+        if($step) {
             $abrt = true;
             $next = false;
-            if(!file_exists($this->tgzfile)){
+            if($step == 'version') {
+                $this->_step_version();
+                $next = 'download';
+            } elseif ($step == 'done') {
+                $this->_step_done();
+                $next = '';
+                $abrt = '';
+            } elseif(!file_exists($this->tgzfile)) {
                 if($this->_step_download()) $next = 'unpack';
-            }elseif(!is_dir($this->tgzdir)){
+            } elseif(!is_dir($this->tgzdir)) {
                 if($this->_step_unpack()) $next = 'check';
-            }elseif($step != 'upgrade'){
+            } elseif($step != 'upgrade') {
                 if($this->_step_check()) $next = 'upgrade';
-            }elseif($step == 'upgrade'){
-                if($this->_step_copy()) $next = 'cancel';
-            }else{
+            } elseif($step == 'upgrade') {
+                if($this->_step_copy()) {
+                    $next = 'done';
+                    $abrt = '';
+                }
+            } else {
                 echo 'uhm. what happened? where am I? This should not happen';
             }
-        }else{
+        } else {
             # first time run, show intro
             echo $this->locale_xhtml('step0');
             $abrt = false;
-            $next = 'download';
+            $next = 'version';
         }
     }
 
-    private function _say(){
+    /**
+     * Output the given arguments using vsprintf and flush buffers
+     */
+    public static function _say() {
         $args = func_get_args();
-        echo vsprintf(array_shift($args)."<br />\n",$args);
+        echo '<img src="'.DOKU_BASE.'lib/images/blank.gif" width="16" height="16" alt="" /> ';
+        echo vsprintf(array_shift($args)."<br />\n", $args);
+        flush();
+        ob_flush();
+    }
+
+    /**
+     * Print a warning using the given arguments with vsprintf and flush buffers
+     */
+    public static function _warn() {
+        $args = func_get_args();
+        echo '<img src="'.DOKU_BASE.'lib/images/error.png" width="16" height="16" alt="!" /> ';
+        echo vsprintf(array_shift($args)."<br />\n", $args);
         flush();
         ob_flush();
     }
@@ -133,16 +197,16 @@ class admin_plugin_upgrade extends DokuWiki_Admin_Plugin {
      * Recursive delete
      *
      * @author Jon Hassall
-     * @link http://de.php.net/manual/en/function.unlink.php#87045
+     * @link   http://de.php.net/manual/en/function.unlink.php#87045
      */
     private function _rdel($dir) {
         if(!$dh = @opendir($dir)) {
-            return;
+            return false;
         }
-        while (false !== ($obj = readdir($dh))) {
+        while(false !== ($obj = readdir($dh))) {
             if($obj == '.' || $obj == '..') continue;
 
-            if (!@unlink($dir . '/' . $obj)) {
+            if(!@unlink($dir.'/'.$obj)) {
                 $this->_rdel($dir.'/'.$obj);
             }
         }
@@ -150,153 +214,278 @@ class admin_plugin_upgrade extends DokuWiki_Admin_Plugin {
         return @rmdir($dir);
     }
 
-    private function _step_download(){
-        $this->_say($this->getLang('dl_from'),$this->tgzurl);
+    /**
+     * Check various versions
+     *
+     * @return bool
+     */
+    private function _step_version() {
+        $ok = true;
+
+        // we need SSL - only newer HTTPClients check that themselves
+        if(!in_array('ssl', stream_get_transports())) {
+            $this->_warn($this->getLang('vs_ssl'));
+            $ok = false;
+        }
+
+        // get the available version
+        $http       = new DokuHTTPClient();
+        $tgzversion = $http->get($this->tgzversion);
+        if(!$tgzversion) {
+            $this->_warn($this->getLang('vs_tgzno').' '.hsc($http->error));
+            $ok = false;
+        }
+        if(!preg_match('/(^| )(\d\d\d\d-\d\d-\d\d[a-z]*)( |$)/i', $tgzversion, $m)) {
+            $this->_warn($this->getLang('vs_tgzno'));
+            $ok            = false;
+            $tgzversionnum = 0;
+        } else {
+            $tgzversionnum = $m[2];
+            $this->_say($this->getLang('vs_tgz'), $tgzversion);
+        }
+
+        // get the current version
+        $version = getVersion();
+        if(!preg_match('/(^| )(\d\d\d\d-\d\d-\d\d[a-z]*)( |$)/i', $version, $m)) {
+            $versionnum = 0;
+        } else {
+            $versionnum = $m[2];
+        }
+        $this->_say($this->getLang('vs_local'), $version);
+
+        // compare versions
+        if(!$versionnum) {
+            $this->_warn($this->getLang('vs_localno'));
+            $ok = false;
+        } else if($tgzversionnum) {
+            if($tgzversionnum < $versionnum) {
+                $this->_warn($this->getLang('vs_newer'));
+                $ok = false;
+            } elseif($tgzversionnum == $versionnum) {
+                $this->_warn($this->getLang('vs_same'));
+                $ok = false;
+            }
+        }
+
+        // check plugin version
+        $pluginversion = $http->get($this->pluginversion);
+        if($pluginversion) {
+            $plugininfo = linesToHash(explode("\n", $pluginversion));
+            $myinfo     = $this->getInfo();
+            if($plugininfo['date'] > $myinfo['date']) {
+                $this->_warn($this->getLang('vs_plugin'), $plugininfo['date']);
+                $ok = false;
+            }
+        }
+
+        // next release will need 5.3
+        if($tgzversionnum > '2014-09-29z') {
+            $minphp = '5.3.0';
+        } else {
+            $minphp = '5.2.0';
+        }
+
+        // check if PHP is up to date
+        if(version_compare(phpversion(), $minphp, '<')) {
+            $this->_warn($this->getLang('vs_php'));
+            $ok = false;
+        }
+
+        return $ok;
+    }
+
+    /**
+     * Redirect to the start page
+     */
+    private function _step_done() {
+        echo $this->getLang('finish');
+        echo "<script>location.href='".DOKU_URL."';</script>";
+    }
+
+    /**
+     * Download the tarball
+     *
+     * @return bool
+     */
+    private function _step_download() {
+        $this->_say($this->getLang('dl_from'), $this->tgzurl);
 
         @set_time_limit(120);
         @ignore_user_abort();
 
-        $http = new DokuHTTPClient();
+        $http          = new DokuHTTPClient();
         $http->timeout = 120;
-        $data = $http->get($this->tgzurl);
+        $data          = $http->get($this->tgzurl);
 
-        if(!$data){
-            $this->_say($http->error);
-            $this->_say($this->getLang('dl_fail'));
+        if(!$data) {
+            $this->_warn($http->error);
+            $this->_warn($this->getLang('dl_fail'));
             return false;
         }
 
-        if(!io_saveFile($this->tgzfile,$data)){
-            $this->_say($this->getLang('dl_fail'));
+        if(!io_saveFile($this->tgzfile, $data)) {
+            $this->_warn($this->getLang('dl_fail'));
             return false;
         }
 
-        $this->_say($this->getLang('dl_done'),filesize_h(strlen($data)));
+        $this->_say($this->getLang('dl_done'), filesize_h(strlen($data)));
 
         return true;
     }
 
-    private function _step_unpack(){
-        global $conf;
+    /**
+     * Unpack the tarball
+     *
+     * @return bool
+     */
+    private function _step_unpack() {
         $this->_say('<b>'.$this->getLang('pk_extract').'</b>');
 
         @set_time_limit(120);
         @ignore_user_abort();
 
-        $tar = new VerboseTarLib($this->tgzfile);
-        if($tar->_initerror < 0){
-            $this->_say($tar->TarErrorStr($tar->_initerror));
-            $this->_say($this->getLang('pk_fail'));
-            return false;
-        }
-
-        $ok = $tar->Extract(VerboseTarLib::FULL_ARCHIVE,$this->tgzdir,1,$conf['fmode'],'/^(_cs|_test|\.gitignore)/');
-        if($ok < 1){
-            $this->_say($tar->TarErrorStr($ok));
-            $this->_say($this->getLang('pk_fail'));
+        try {
+            $tar = new VerboseTar();
+            $tar->open($this->tgzfile);
+            $tar->extract($this->tgzdir, 1);
+            $tar->close();
+        } catch (Exception $e) {
+            $this->_warn($e->getMessage());
+            $this->_warn($this->getLang('pk_fail'));
             return false;
         }
 
         $this->_say($this->getLang('pk_done'));
 
-        $this->_say($this->getLang('pk_version'),
-                    hsc(file_get_contents($this->tgzdir.'/VERSION')),
-                    getVersion());
+        $this->_say(
+            $this->getLang('pk_version'),
+            hsc(file_get_contents($this->tgzdir.'/VERSION')),
+            getVersion()
+        );
         return true;
     }
 
-    private function _step_check(){
+    /**
+     * Check permissions of files to change
+     *
+     * @return bool
+     */
+    private function _step_check() {
         $this->_say($this->getLang('ck_start'));
-        $ok = $this->_traverse('',true);
-        if($ok){
+        $ok = $this->_traverse('', true);
+        if($ok) {
             $this->_say('<b>'.$this->getLang('ck_done').'</b>');
-        }else{
-            $this->_say('<b>'.$this->getLang('ck_fail').'</b>');
+        } else {
+            $this->_warn('<b>'.$this->getLang('ck_fail').'</b>');
         }
         return $ok;
     }
 
-    private function _step_copy(){
+    /**
+     * Copy over new files
+     *
+     * @return bool
+     */
+    private function _step_copy() {
         $this->_say($this->getLang('cp_start'));
-        $ok = $this->_traverse('',false);
-        if($ok){
+        $ok = $this->_traverse('', false);
+        if($ok) {
             $this->_say('<b>'.$this->getLang('cp_done').'</b>');
             $this->_rmold();
             $this->_say('<b>'.$this->getLang('finish').'</b>');
-        }else{
-            $this->_say('<b>'.$this->getLang('cp_fail').'</b>');
+        } else {
+            $this->_warn('<b>'.$this->getLang('cp_fail').'</b>');
         }
         return $ok;
     }
 
-    private function _rmold(){
+    /**
+     * Delete outdated files
+     */
+    private function _rmold() {
         $list = file($this->tgzdir.'data/deleted.files');
-        foreach($list as $line){
-            $line = trim(preg_replace('/#.*$/','',$line));
+        foreach($list as $line) {
+            $line = trim(preg_replace('/#.*$/', '', $line));
             if(!$line) continue;
             $file = DOKU_INC.$line;
             if(!file_exists($file)) continue;
-            if( (is_dir($file) && $this->_rdel($file)) ||
-                @unlink($file)){
-                $this->_say($this->getLang('rm_done'),hsc($line));
-            }else{
-                $this->_say($this->getLang('rm_fail'),hsc($line));
+            if((is_dir($file) && $this->_rdel($file)) ||
+                @unlink($file)
+            ) {
+                $this->_say($this->getLang('rm_done'), hsc($line));
+            } else {
+                $this->_warn($this->getLang('rm_fail'), hsc($line));
             }
         }
+        // delete install
+        @unlink(DOKU_INC.'install.php');
+
+        // make sure update message will be gone
+        @touch(DOKU_INC.'doku.php');
     }
 
-    private function _traverse($dir,$dryrun){
+    /**
+     * Traverse over the given dir and compare it to the DokuWiki dir
+     *
+     * Checks what files need an update, tests for writability and copies
+     *
+     * @param string $dir
+     * @param bool   $dryrun do not copy but only check permissions
+     * @return bool
+     */
+    private function _traverse($dir, $dryrun) {
         $base = $this->tgzdir;
-        $ok = true;
+        $ok   = true;
 
         $dh = @opendir($base.'/'.$dir);
-        if(!$dh) return;
-        while(($file = readdir($dh)) !== false){
+        if(!$dh) return false;
+        while(($file = readdir($dh)) !== false) {
             if($file == '.' || $file == '..') continue;
             $from = "$base/$dir/$file";
             $to   = DOKU_INC."$dir/$file";
 
-            if(is_dir($from)){
-                if($dryrun){
+            if(is_dir($from)) {
+                if($dryrun) {
                     // just check for writability
-                    if(!is_dir($to)){
-                        if(is_dir(dirname($to)) && !is_writable(dirname($to))){
-                            $this->_say('<b>'.$this->getLang('tv_noperm').'</b>',hsc("$dir/$file"));
+                    if(!is_dir($to)) {
+                        if(is_dir(dirname($to)) && !is_writable(dirname($to))) {
+                            $this->_warn('<b>'.$this->getLang('tv_noperm').'</b>', hsc("$dir/$file"));
                             $ok = false;
                         }
                     }
                 }
 
                 // recursion
-                if(!$this->_traverse("$dir/$file",$dryrun)){
+                if(!$this->_traverse("$dir/$file", $dryrun)) {
                     $ok = false;
                 }
-            }else{
+            } else {
                 $fmd5 = md5(@file_get_contents($from));
                 $tmd5 = md5(@file_get_contents($to));
-                if($fmd5 != $tmd5 || !file_exists($to)){
-                    if($dryrun){
+                if($fmd5 != $tmd5 || !file_exists($to)) {
+                    if($dryrun) {
                         // just check for writability
-                        if( (file_exists($to) && !is_writable($to)) ||
-                            (!file_exists($to) && is_dir(dirname($to)) && !is_writable(dirname($to))) ){
+                        if((file_exists($to) && !is_writable($to)) ||
+                            (!file_exists($to) && is_dir(dirname($to)) && !is_writable(dirname($to)))
+                        ) {
 
-                            $this->_say('<b>'.$this->getLang('tv_noperm').'</b>',hsc("$dir/$file"));
+                            $this->_warn('<b>'.$this->getLang('tv_noperm').'</b>', hsc("$dir/$file"));
                             $ok = false;
-                        }else{
-                            $this->_say($this->getLang('tv_upd'),hsc("$dir/$file"));
+                        } else {
+                            $this->_say($this->getLang('tv_upd'), hsc("$dir/$file"));
                         }
-                    }else{
+                    } else {
                         // check dir
-                        if(io_mkdir_p(dirname($to))){
+                        if(io_mkdir_p(dirname($to))) {
                             // copy
-                            if(!copy($from,$to)){
-                                $this->_say('<b>'.$this->getLang('tv_nocopy').'</b>',hsc("$dir/$file"));
+                            if(!copy($from, $to)) {
+                                $this->_warn('<b>'.$this->getLang('tv_nocopy').'</b>', hsc("$dir/$file"));
                                 $ok = false;
-                            }else{
-                                $this->_say($this->getLang('tv_done'),hsc("$dir/$file"));
+                            } else {
+                                $this->_say($this->getLang('tv_done'), hsc("$dir/$file"));
                             }
-                        }else{
-                            $this->_say('<b>'.$this->getLang('tv_nodir').'</b>',hsc("$dir"));
+                        } else {
+                            $this->_warn('<b>'.$this->getLang('tv_nodir').'</b>', hsc("$dir"));
                             $ok = false;
                         }
                     }

@@ -1,7 +1,10 @@
-﻿<?php
+<?php
+ 
 /**
- * Japanese language file
+ * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
+ *
+ * @author Hideaki SAWADA <chuno@live.jp>
  */
 
-// for the configuration manager
-$lang['tpl_dir'] = 'テンプレート用サブディレクトリ（media managerで使用）';
+$lang['tpl_dir'] = 'メディアマネージャー内のテンプレート用サブディレクトリ';
+$lang['showexportbutton']      = 'ODT 出力ボタンを表示';

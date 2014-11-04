@@ -5,3 +5,4 @@
 
 // Directory of the templates in the media manager
 $conf['tpl_dir'] = 'odt';
+$conf['showexportbutton'] = 1;

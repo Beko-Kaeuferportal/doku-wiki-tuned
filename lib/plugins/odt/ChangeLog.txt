@@ -1,3 +1,28 @@
+2014-10-14 Florian Lamml (info@florian-lamml.de)
+
+    * Change info.txt to plugin.info.txt - fix install error
+
+2014-10-13 LarsDW223
+
+    * Moved 'csscolors.php' to subdirectory helper and converted it into a DokuWiki helper plugin.
+
+2014-10-12 LarsDW223
+
+    * Added new file 'csscolors.php'. It is a helper class to convert CSS color names
+      into their corresponding color values. This might be needed by other plugins for ODT
+      rendering because ODT does not know CSS color names.
+
+2014-10-04 LarsDW223
+
+    * Added a function to insert svg code as an svg image.
+      Added a function to store an image in the document without automatically inserting it in the content.
+    * Added functions for querying page size and margins.
+      Added functions for conversion of percentage witdth and height values.
+
+﻿2014-02-10  Florian Lamml (info@florian-lamml.de)
+	* Create pagetools-odtexport-sprite.png (adapt from dw2pdf plugin)
+	* add pagetools-button support in action.php (adapt from dw2pdf plugin)
+
 2010-10-30  Aurélien Bompard <aurelien@bompard.org>
 
 	* action.php: Add getInfo() method, fixes bug #8
