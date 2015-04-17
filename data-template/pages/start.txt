@@ -1,0 +1,47 @@
+===== IT- Wiki =====
+   * Hier wird Wissen konserviert.
+   * Wenn ihr hier eine Information nicht gefunden habt, euch die Information unter widrigsten Bedingungen beschafft habt, dann tragt sie bitte ein.  
+   * neue Menüpunkte können mit Rechtsklick auf einen Menüpunkt im Seitenmenü erzeugt werden.
+   * **Seiten werden gelöscht, indem der Inhalt gelöscht und der Beitrag gespeichert wird**
+   * Hinweise zur Formatierung gibt es hier: [[wiki:syntax|Formatting Syntax]]
+
+=== Änderungen verfolgen ===
+  * die letzten Änderungen können entweder hier https://kb.ib.io/doku.php?id=start&do=recent eingesehen werden oder ...
+  * per E-Mail aboniert werden(rechts neben dem Beitrag das Email-Symbol "AboVerwaltung")
+
+
+=== Grundstruktur ===
+  * [[offizielles]]: Anträge, Protokolle etc.
+  * [[repositories]]: Dokumentation und Anleitungen zu den einzelnen Projekten
+  * [[techniken]]: generelles Wissen über Techniken
+  * wiki: Infos zur [[wiki:dokuwiki|Wiki-Software]] und [[wiki:syntax|Syntax]]
+
+===== rechtmäßig erworbene Wiki-Bienchen =====
+<html><div style="float:left; margin-right:40px;"></html>{{:51vf_t4vytl._sy450_.jpg?100|}}<html></div></html>
+  * am 3.2.2014 hat **Bennet** ein __Wiki-Bienchen__ für das Eintragen der [[offizielles:protokolle:retros:backend:2014-02-03|Retro]] erhalten LOL
+  * am 11.2.2014 wurde **Schmiddi** ein __Wiki-Bienchen__ für bereits geschriebene Beiträge überreicht.
+  * am 19.3.2014 wurde **Alpha** ein __Wiki-Bienchen__ für seine herrausragende und jetzt auch ausgezeichnete Arbeit am Wiki verliehen.
+  * am 3.4.2014 hat sich **Schmiddi** ein __Wiki-Bienchen__ für gutes PHP-Wissen, was produktiv nie eingesetzt werden sollte ''WTF.php''
+  * am 11.4.2014 hat sich die **IT-Admin-Abteilung** ein __Wiki-Bienchen__ für das Befüllen des öffentlichen Support-Bereiches verdient.
+  * am 8.7.2014 haben sich **Hendrik** und **Marco** ein __Wiki-Bienchen__ für herrausragende Beteiligung an der Erschaffung und Pflege des IT-Wikis verdient.
+  * am 29.10.2014 erhielten **Jenny**, **Thilo** und **Rainer** ein __Wiki-Bienchen__ für ihre Verdienste am Wiki.(Bennet und Schmiddi wurde jeweils eins aberkannt).
+=== Wiki-Bienchen Regeln ===
+  * es existieren 8 __Wiki-Bienchen__
+  * ein __Wiki-Bienchen__ erhält wer 10 Beiträger verfasst hat, dann 20, 40 etc.
+  * es kann ein Sonder-__Wiki-Bienchen__ vergeben werden
+  * muss ein neues Bienchen vergeben werden und es sind bereits alle 8 vergeben, wird das "älteste" Bienchen neu vergeben
+
+<AUTHORSTATS>
+\\
+\\
+\\
+\\
+\\
+\\
+=== TODO Wiki===
+  * chef
+    * richtiger pfad für user web1 authorized ssh keys 
+    * login shell für web1
+    * apt-get install sendmail sendmail-base sendmail-bin sendmail-cf mailutils
+    * template /etc/nginx/server.crt, /etc/nginx/server.key
+  * Einigung über Ablage von Passwörtern etc.
