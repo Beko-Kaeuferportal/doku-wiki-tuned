@@ -10,6 +10,7 @@
 if(!defined('DOKU_INC')) die();
 
 require_once DOKU_INC.'inc/parser/renderer.php';
+require_once DOKU_INC.'lib/plugins/odt/helper/cssimport.php';
 
 // ZipLib.class.php
 $dw_version = preg_replace('/[^\d]/', '', getversion());
@@ -26,6 +27,7 @@ if (version_compare($dw_version, "20070626") and
  * The Renderer
  */
 class renderer_plugin_odt extends Doku_Renderer {
+    var $import = null;
     var $ZIP = null;
     var $meta;
     var $store = '';
@@ -64,7 +66,7 @@ class renderer_plugin_odt extends Doku_Renderer {
      * Return version info
      */
     function getInfo(){
-        return confToHash(dirname(__FILE__).'/info.txt');
+        return confToHash(dirname(__FILE__).'/plugin.info.txt');
     }
 
     /**
@@ -194,6 +196,16 @@ class renderer_plugin_odt extends Doku_Renderer {
 
         $this->doc = preg_replace('#<text:p[^>]*>\s*</text:p>#', '', $this->doc);
 
+        // Template name provided in the URL
+        if (isset($_GET["odt-template"])) {
+            $this->template = $_GET["odt-template"];
+        }
+
+        // Template provided in the configuration
+        if (!$this->template and $this->getConf("tpl_default")) {
+            $this->template = $this->getConf("tpl_default");
+        }
+
         if ($this->template) { // template chosen
             if (file_exists($conf['mediadir'].'/'.$this->getConf("tpl_dir")."/".$this->template)) { //template found
                 $this->document_end_template();
@@ -272,6 +284,14 @@ class renderer_plugin_odt extends Doku_Renderer {
         $this->ZIP->add_File($value,'content.xml');
 
         $value = io_readFile(DOKU_PLUGIN.'odt/styles.xml');
+
+        // Add common styles.
+        unset($common);
+        foreach ($this->styles as $style) {
+            $common .= $style;
+        }
+        $value = str_replace('</office:styles>', $common.'</office:styles>', $value);
+
         $value = str_replace('<office:automatic-styles/>', $autostyles, $value);
         $this->ZIP->add_File($value,'styles.xml');
 
@@ -500,7 +520,7 @@ class renderer_plugin_odt extends Doku_Renderer {
         "Strong_20_Emphasis"=>'
             <style:style style:name="Strong_20_Emphasis" style:display-name="Strong Emphasis" style:family="text">
                 <style:text-properties fo:font-weight="bold" style:font-weight-asian="bold" style:font-weight-complex="bold"/>
-            </style:style>', );
+            </style:style>',);
         return $styles;
     }
 
@@ -1113,7 +1133,7 @@ class renderer_plugin_odt extends Doku_Renderer {
         return '<text:span text:style-name="'.$style_name.'">';
     }
 
-    function internalmedia ($src, $title=NULL, $align=NULL, $width=NULL,
+   function internalmedia ($src, $title=NULL, $align=NULL, $width=NULL,
                             $height=NULL, $cache=NULL, $linking=NULL) {
         global $conf;
         global $ID;
@@ -1124,11 +1144,16 @@ class renderer_plugin_odt extends Doku_Renderer {
             $file = mediaFN($src);
             $this->_odtAddImage($file, $width, $height, $align, $title);
         }else{
+/*
             // FIXME build absolute medialink and call externallink()
             $this->code('FIXME internalmedia: '.$src);
+*/
+            //FIX by EPO/Intersel - create a link to the dokuwiki internal resource
+            if (empty($title)) {$title=explode(':',$src); $title=end($title);}
+            $this->externalmedia(str_replace('doku.php?id=','lib/exe/fetch.php?media=',wl($src,'',true)),$title);
+            //End of FIX
         }
     }
-
     function externalmedia ($src, $title=NULL, $align=NULL, $width=NULL,
                             $height=NULL, $cache=NULL, $linking=NULL) {
         global $conf;
@@ -1550,6 +1575,546 @@ class renderer_plugin_odt extends Doku_Renderer {
         return array($width, $height);
     }
 
-}
+    /**
+     * This function opens a new span using the style as set in the imported CSS $import.
+     * So, the function requires the helper class 'helper_plugin_odt_cssimport'.
+     * The CSS style is selected by the element type 'span' and the specified classes in $classes.
+     * The property 'background-image' is not supported by an ODT span. This will be emulated
+     * by inserting an image manually in the span. If the url from the CSS should be converted to
+     * a local path, then the caller can specify a $baseURL. The full path will then be $baseURL/background-image.
+     *
+     * This function calls _odtSpanOpenUseProperties. See the function description for supported properties.
+     *
+     * The span should be closed by calling '_odtSpanClose'.
+     *
+     * @author LarsDW223
+     */
+    function _odtSpanOpenUseCSS(helper_plugin_odt_cssimport $import, $classes, $baseURL = NULL){
+        $properties = array();
 
-//Setup VIM: ex: et ts=4 enc=utf-8 :
+        $import->getPropertiesForElement($properties, 'span', $classes);
+        foreach ($properties as $property => $value) {
+            $properties [$property] = $import->adjustValueForODT ($value);
+        }
+
+        if ( empty ($properties ['background-image']) === false ) {
+            if ( empty ($baseURL) === false) {
+                // Replace 'url(...)' with $baseURL
+                $properties ['background-image'] = $import->replaceURLPrefix ($properties ['background-image'], $baseURL);
+            }
+        }
+        $this->_odtSpanOpenUseProperties($properties);
+    }
+
+    /**
+     * This function opens a new span using the style as specified in $style.
+     * The property 'background-image' is not supported by an ODT span. This will be emulated
+     * by inserting an image manually in the span. If the url from the CSS should be converted to
+     * a local path, then the caller can specify a $baseURL. The full path will then be $baseURL/background-image.
+     *
+     * This function calls _odtSpanOpenUseProperties. See the function description for supported properties.
+     *
+     * The span should be closed by calling '_odtSpanClose'.
+     *
+     * @author LarsDW223
+     */
+    function _odtSpanOpenUseCSSStyle($style, $baseURL = NULL){
+        $properties = array();
+
+        if ( $this->import == NULL ) {
+            $this->import = new helper_plugin_odt_cssimport ();
+            if ( $this->import == NULL ) {
+                // Failed to create helper. Can't proceed.
+                return;
+            }
+        }
+
+        // Create rule with selector '*' (doesn't matter) and declarations as set in $style
+        $rule = new css_rule ('*', $style);
+        $rule->getProperties ($properties);
+        foreach ($properties as $property => $value) {
+            $properties [$property] = $this->import->adjustValueForODT ($value);
+        }
+
+        if ( empty ($properties ['background-image']) === false ) {
+            if ( empty ($baseURL) === false) {
+                // Replace 'url(...)' with $baseURL
+                $properties ['background-image'] = $this->import->replaceURLPrefix ($properties ['background-image'], $baseURL);
+            }
+        }
+        $this->_odtSpanOpenUseProperties($properties);
+    }
+
+    /**
+     * This function opens a new span using the style as set in the assoziative array $properties.
+     * The parameters in the array should be named as the CSS property names e.g. 'color' or 'background-color'.
+     * The property 'background-image' is not supported by an ODT span. This will be emulated
+     * by inserting an image manually in the span.
+     *
+     * background-color, color, font-weight, font-size, border, font-family, font-variant, letter-spacing,
+     * vertical-align, background-image (emulated)
+     *
+     * The span should be closed by calling '_odtSpanClose'.
+     *
+     * @author LarsDW223
+     */
+    function _odtSpanOpenUseProperties($properties){
+        $this->style_count++;
+
+        $odt_bg = $properties ['background-color'];
+        $odt_fo = $properties ['color'];
+        $odt_fo_weight = $properties ['font-weight'];
+        $odt_fo_size = $properties ['font-size'];
+        $odt_fo_border = $properties ['border'];
+        $odt_fo_family = $properties ['font-family'];
+        $odt_fo_variant = $properties ['font-variant'];
+        $odt_fo_lspacing = $properties ['letter-spacing'];
+        $odt_valign = $properties ['vertical-align'];
+        $picture = $properties ['background-image'];
+
+        // Replace sub and super with text-position.
+        unset($odt_text_pos);
+        if ( $odt_valign == 'sub' ) {
+            $odt_text_pos = '-33% 100%';
+            unset($odt_valign);
+        }
+        if ( $odt_valign == 'super' ) {
+            $odt_text_pos = '33% 100%';
+            unset($odt_valign);
+        }
+        unset ($odt_parent);
+        $length = strlen ($odt_fo_size);
+        if ( $odt_fo_size [$length-1] == '%' ) {
+            // A font-size in percent is only supported in common style definitions, not in automatic
+            // styles. Create a common style and set it as parent for this automatic style.
+            $name = 'Size'.trim ($odt_fo_size, '%').'pc';
+            $this->styles [$name] = $this->_odtBuildSizeStyle ($name, $odt_fo_size);
+            $odt_parent = $name;
+            unset($odt_fo_size);
+        }
+
+        if ( empty ($picture) === false ) {
+            // If a picture/background-image is set, than we insert it manually here.
+            // This is a workaround because ODT does not support the background-image attribute in a span.
+
+            // Define graphic style for picture
+            $style_name = 'odt_auto_style_span_graphic_'.$this->style_count;
+            $image_style = '<style:style style:name="'.$style_name.'" style:family="graphic" style:parent-style-name="Graphics"><style:graphic-properties style:vertical-pos="middle" style:vertical-rel="text" style:horizontal-pos="from-left" style:horizontal-rel="paragraph" fo:background-color="'.$odt_bg.'" style:flow-with-text="true"></style:graphic-properties></style:style>';
+
+            // Add style and image to our document
+            $this->autostyles[$style_name] = $image_style;
+            $this->_odtAddImage ($picture,NULL,NULL,NULL,NULL,$style_name);
+        }
+
+        $style_name = 'odt_auto_style_span_'.$this->style_count;
+        $style  = '<style:style style:name="'.$style_name.'" style:family="text"';
+        if ( empty ($odt_parent) === false ) {
+            $style .= ' style:parent-style-name="'.$odt_parent.'" ';
+        }
+        $style .= '>';
+        $style .= '<style:text-properties fo:color="'.$odt_fo.'" fo:background-color="'.$odt_bg.'" ';
+        if ( empty ($odt_fo_weight) === false ) {
+            $style .= 'fo:font-weight="'.$odt_fo_weight.'" ';
+            $style .= 'style:font-weight-asian="'.$odt_fo_weight.'" ';
+            $style .= 'style:font-weight-complex="'.$odt_fo_weight.'" ';
+        }
+        if ( empty ($odt_fo_size) === false ) {
+            $style .= 'fo:font-size="'.$odt_fo_size.'" ';
+            $style .= 'style:font-size-asian="'.$odt_fo_size.'" ';
+            $style .= 'style:font-size-complex="'.$odt_fo_size.'" ';
+        }
+        if ( empty ($odt_fo_border) === false ) {
+            $style .= 'fo:border="'.$odt_fo_border.'" ';
+        }
+        if ( empty ($odt_fo_family) === false ) {
+            $style .= 'fo:font-family="'.$odt_fo_family.'" ';
+        }
+        if ( empty ($odt_fo_variant) === false ) {
+            $style .= 'fo:font-variant="'.$odt_fo_variant.'" ';
+        }
+        if ( empty ($odt_fo_lspacing) === false ) {
+            $style .= 'fo:letter-spacing="'.$odt_fo_lspacing.'" ';
+        }
+        if ( empty ($odt_valign) === false ) {
+            $style .= 'style:vertical-align="'.$odt_valign.'" ';
+        }
+        if ( empty ($odt_text_pos) === false ) {
+            $style .= 'style:text-position="'.$odt_text_pos.'" ';
+        }
+        $style .= '/>';
+        $style .= '</style:style>';
+
+        $this->autostyles[$style_name] = $style;
+        $this->doc .= '<text:span text:style-name="'.$style_name.'">';
+    }
+
+    /**
+     * This function closes a span (previously opened with _odtSpanOpenUseCSS).
+     *
+     * @author LarsDW223
+     */
+    function _odtSpanClose(){
+        $this->doc .= '</text:span>';
+    }
+
+    /**
+     * This function opens a new paragraph using the style as set in the imported CSS $import.
+     * So, the function requires the helper class 'helper_plugin_odt_cssimport'.
+     * The CSS style is selected by the element type 'p' and the specified classes in $classes.
+     * The property 'background-image' is emulated by inserting an image manually in the paragraph.
+     * If the url from the CSS should be converted to a local path, then the caller can specify a $baseURL.
+     * The full path will then be $baseURL/background-image.
+     *
+     * This function calls _odtParagraphOpenUseProperties. See the function description for supported properties.
+     *
+     * The span should be closed by calling '_odtParagraphClose'.
+     *
+     * @author LarsDW223
+     */
+    function _odtParagraphOpenUseCSS(helper_plugin_odt_cssimport $import, $classes, $baseURL = NULL){
+        $properties = array();
+
+        $import->getPropertiesForElement($properties, 'span', $classes);
+        foreach ($properties as $property => $value) {
+            $properties [$property] = $import->adjustValueForODT ($value);
+        }
+
+        if ( empty ($properties ['background-image']) === false ) {
+            if ( empty ($baseURL) === false) {
+                // Replace 'url(...)' with $baseURL
+                $properties ['background-image'] = $import->replaceURLPrefix ($properties ['background-image'], $baseURL);
+            }
+        }
+        $this->_odtParagraphOpenUseProperties($properties);
+    }
+
+    /**
+     * This function opens a new paragraph using the style as specified in $style.
+     * The property 'background-image' is emulated by inserting an image manually in the paragraph.
+     * If the url from the CSS should be converted to a local path, then the caller can specify a $baseURL.
+     * The full path will then be $baseURL/background-image.
+     *
+     * This function calls _odtParagraphOpenUseProperties. See the function description for supported properties.
+     *
+     * The paragraph must be closed by calling 'p_close'.
+     *
+     * @author LarsDW223
+     */
+    function _odtParagraphOpenUseCSSStyle($style, $baseURL = NULL){
+        $properties = array();
+
+        if ( $this->import == NULL ) {
+            $this->import = new helper_plugin_odt_cssimport ();
+            if ( $this->import == NULL ) {
+                // Failed to create helper. Can't proceed.
+                return;
+            }
+        }
+
+        // Create rule with selector '*' (doesn't matter) and declarations as set in $style
+        $rule = new css_rule ('*', $style);
+        $rule->getProperties ($properties);
+        foreach ($properties as $property => $value) {
+            $properties [$property] = $this->import->adjustValueForODT ($value);
+        }
+
+        if ( empty ($properties ['background-image']) === false ) {
+            if ( empty ($baseURL) === false) {
+                // Replace 'url(...)' with $baseURL
+                $properties ['background-image'] = $this->import->replaceURLPrefix ($properties ['background-image'], $baseURL);
+            }
+        }
+        $this->_odtParagraphOpenUseProperties($properties);
+    }
+
+    /**
+     * This function opens a new paragraph using the style as set in the assoziative array $properties.
+     * The parameters in the array should be named as the CSS property names e.g. 'color' or 'background-color'.
+     * The property 'background-image' is emulated by inserting an image manually in the paragraph.
+     *
+     * The currently supported properties are:
+     * background-color, color, font-weight, font-size, border, font-family, font-variant, letter-spacing,
+     * vertical-align, line-height, background-image (emulated)
+     *
+     * The paragraph must be closed by calling 'p_close'.
+     *
+     * @author LarsDW223
+     */
+    function _odtParagraphOpenUseProperties($properties){
+        if ($this->in_paragraph) {
+            // opening a paragraph inside another paragraph is illegal
+            return;
+        }
+        $this->in_paragraph = true;
+
+        $this->style_count++;
+
+        $odt_bg = $properties ['background-color'];
+        $odt_fo = $properties ['color'];
+        $odt_fo_weight = $properties ['font-weight'];
+        $odt_fo_size = $properties ['font-size'];
+        $odt_fo_border = $properties ['border'];
+        $odt_fo_family = $properties ['font-family'];
+        $odt_fo_variant = $properties ['font-variant'];
+        $odt_fo_lspacing = $properties ['letter-spacing'];
+        $odt_valign = $properties ['vertical-align'];
+        $odt_fo_line_height = $properties ['line-height'];
+        $picture = $properties ['background-image'];
+
+        // Replace sub and super with text-position.
+        unset($odt_text_pos);
+        if ( $odt_valign == 'sub' ) {
+            $odt_text_pos = '-33% 100%';
+            unset($odt_valign);
+        }
+        if ( $odt_valign == 'super' ) {
+            $odt_text_pos = '33% 100%';
+            unset($odt_valign);
+        }
+        unset ($odt_parent);
+        $length = strlen ($odt_fo_size);
+        if ( $odt_fo_size [$length-1] == '%' ) {
+            // A font-size in percent is only supported in common style definitions, not in automatic
+            // styles. Create a common style and set it as parent for this automatic style.
+            $name = 'Size'.trim ($odt_fo_size, '%').'pc';
+            $this->styles [$name] = $this->_odtBuildSizeStyle ($name, $odt_fo_size);
+            $odt_parent = $name;
+            unset($odt_fo_size);
+        }
+
+        if ( empty ($picture) === false ) {
+            // If a picture/background-image is set, than we insert it manually here.
+            // This is a workaround because ODT does not support the background-image attribute in a span.
+
+            // Define graphic style for picture
+            $style_name = 'odt_auto_style_span_graphic_'.$this->style_count;
+            $image_style = '<style:style style:name="'.$style_name.'" style:family="graphic" style:parent-style-name="Graphics"><style:graphic-properties style:vertical-pos="middle" style:vertical-rel="text" style:horizontal-pos="from-left" style:horizontal-rel="paragraph" fo:background-color="'.$odt_bg.'" style:flow-with-text="true"></style:graphic-properties></style:style>';
+
+            // Add style and image to our document
+            $this->autostyles[$style_name] = $image_style;
+            $this->_odtAddImage ($picture,NULL,NULL,NULL,NULL,$style_name);
+        }
+
+        $style_name = 'odt_auto_style_span_'.$this->style_count;
+        $style  = '<style:style style:name="'.$style_name.'" style:family="paragraph"';
+        if ( empty ($odt_parent) === false ) {
+            $style .= ' style:parent-style-name="'.$odt_parent.'" ';
+        }
+        $style .= '>';
+        $style .= '<style:paragraph-properties fo:color="'.$odt_fo.'" fo:background-color="'.$odt_bg.'" ';
+        if ( empty ($odt_fo_weight) === false ) {
+            $style .= 'fo:font-weight="'.$odt_fo_weight.'" ';
+            $style .= 'style:font-weight-asian="'.$odt_fo_weight.'" ';
+            $style .= 'style:font-weight-complex="'.$odt_fo_weight.'" ';
+        }
+        if ( empty ($odt_fo_size) === false ) {
+            $style .= 'fo:font-size="'.$odt_fo_size.'" ';
+            $style .= 'style:font-size-asian="'.$odt_fo_size.'" ';
+            $style .= 'style:font-size-complex="'.$odt_fo_size.'" ';
+        }
+        if ( empty ($odt_fo_border) === false ) {
+            $style .= 'fo:border="'.$odt_fo_border.'" ';
+        }
+        if ( empty ($odt_fo_family) === false ) {
+            $style .= 'fo:font-family="'.$odt_fo_family.'" ';
+        }
+        if ( empty ($odt_fo_variant) === false ) {
+            $style .= 'fo:font-variant="'.$odt_fo_variant.'" ';
+        }
+        if ( empty ($odt_fo_lspacing) === false ) {
+            $style .= 'fo:letter-spacing="'.$odt_fo_lspacing.'" ';
+        }
+        if ( empty ($odt_fo_line_height) === false ) {
+            $style .= 'fo:line-height="'.$odt_fo_line_height.'" ';
+        }
+        if ( empty ($odt_valign) === false ) {
+            $style .= 'style:vertical-align="'.$odt_valign.'" ';
+        }
+        if ( empty ($odt_text_pos) === false ) {
+            $style .= 'style:text-position="'.$odt_text_pos.'" ';
+        }
+        $style .= '/>';
+        $style .= '</style:style>';
+
+        $this->autostyles[$style_name] = $style;
+        $this->doc .= '<text:p text:style-name="'.$style_name.'">';
+    }
+
+    /**
+     * This function opens a div. As divs are not supported by ODT, it will be exported as a frame.
+     * To be more precise, to frames will be created. One including a picture nad the other including the text.
+     * A picture frame will only be created if a 'background-image' is set in the CSS style.
+     *
+     * The currently supported CSS properties are:
+     * background-color, color, padding, margin, display, border-radius, min-height.
+     * The background-image is simulated using a picture frame.
+     * FIXME: Find a way to successfuly use the background-image in the graphic style (see comments).
+     *
+     * The div should be closed by calling '_odtDivCloseAsFrame'.
+     *
+     * @author LarsDW223
+     */
+    function _odtDivOpenAsFrameUseCSS (helper_plugin_odt_cssimport $import, $classes, $baseURL = NULL) {
+        $properties = array();
+
+        $this->style_count++;
+
+        $import->getPropertiesForElement($properties, 'div', $classes);
+        foreach ($properties as $property => $value) {
+            $properties [$property] = $import->adjustValueForODT ($value, 14);
+        }
+        $odt_bg = $properties ['background-color'];
+        $odt_fo = $properties ['color'];
+        $padding_left = $properties ['padding-left'];
+        $padding_right = $properties ['padding-right'];
+        $padding_top = $properties ['padding-top'];
+        $padding_bottom = $properties ['padding-bottom'];
+        $margin_left = $properties ['margin-left'];
+        $margin_right = $properties ['margin-right'];
+        $margin_top = $properties ['margin-top'];
+        $margin_bottom = $properties ['margin-bottom'];
+        $display = $properties ['display'];
+        $radius = $properties ['border-radius'];
+        $picture = $properties ['background-image'];
+        $pic_positions = preg_split ('/\s/', $properties ['background-position']);
+
+        $min_height = $properties ['min-height'];
+
+        if ( empty ($picture) === false ) {
+            // If a picture/background-image is set in the CSS, than we insert it manually here.
+            // This is a workaround because ODT does not support the background-image attribute in a span.
+
+            if ( empty ($baseURL) === false) {
+                // Replace 'url(...)' with $baseURL
+                $picture = $import->replaceURLPrefix ($picture, $baseURL);
+            }
+            $pic_link=$this->_odtAddImageAsFileOnly($picture);
+            list($pic_width, $pic_height) = $this->_odtGetImageSize($picture);
+        }
+
+        $horiz_pos = 'center';
+        $width = 100;
+        $width_abs = $this->_getAbsWidthMindMargins ($width);
+
+        // Add our styles.
+        $style_name = 'odt_auto_style_div_'.$this->style_count;
+
+        $style =
+         '<style:style style:name="'.$style_name.'_text_frame" style:family="graphic">
+             <style:graphic-properties svg:stroke-color="'.$odt_bg.'"
+                 draw:fill="solid" draw:fill-color="'.$odt_bg.'"
+                 draw:textarea-horizontal-align="left"
+                 draw:textarea-vertical-align="center"
+                 style:horizontal-pos="'.$horiz_pos.'" fo:background-color="'.$odt_bg.'" style:background-transparency="100%" ';
+        if ( empty($padding_left) === false ) {
+            $style .= 'fo:padding-left="'.$padding_left.'" ';
+        }
+        if ( empty($padding_right) === false ) {
+            $style .= 'fo:padding-right="'.$padding_right.'" ';
+        }
+        if ( empty($padding_top) === false ) {
+            $style .= 'fo:padding-top="'.$padding_top.'" ';
+        }
+        if ( empty($padding_bottom) === false ) {
+            $style .= 'fo:padding-bottom="'.$padding_bottom.'" ';
+        }
+        if ( empty($margin_left) === false ) {
+            $style .= 'fo:margin-left="'.$margin_left.'" ';
+        }
+        if ( empty($margin_right) === false ) {
+            $style .= 'fo:margin-right="'.$margin_right.'" ';
+        }
+        if ( empty($margin_top) === false ) {
+            $style .= 'fo:margin-top="'.$margin_top.'" ';
+        }
+        if ( empty($margin_bottom) === false ) {
+            $style .= 'fo:margin-bottom="'.$margin_bottom.'" ';
+        }
+        $style .= 'fo:min-height="'.$min_height.'"
+                 style:rel-width="'.$width.'%"
+                 style:wrap="none"';
+        $style .= '>';
+
+        // FIXME: Delete the part below 'if ( $picture != NULL ) {...}'
+        // and use this background-image definition. For some reason the background-image is not displayed.
+        // Help is welcome.
+        /*$style .= '<style:background-image ';
+        $style .= 'xlink:href="'.$pic_link.'" xlink:type="simple" xlink:actuate="onLoad"
+                   style:position="center center" style:repeat="no-repeat" draw:opacity="100%"/>';*/
+        $style .= '</style:graphic-properties>';
+        $style .= '</style:style>';
+        $style .= '<style:style style:name="'.$style_name.'_image_frame" style:family="graphic">
+             <style:graphic-properties svg:stroke-color="'.$odt_bg.'"
+                 draw:fill="none" draw:fill-color="'.$odt_bg.'"
+                 draw:textarea-horizontal-align="left"
+                 draw:textarea-vertical-align="center"
+                 style:wrap="none"/>
+         </style:style>
+         <style:style style:name="'.$style_name.'_text_box" style:family="paragraph">
+             <style:text-properties fo:color="'.$odt_fo.'"/>
+             <style:paragraph-properties
+              fo:margin-left="'.$padding_left.'pt" fo:margin-right="10pt" fo:text-indent="0cm"/>
+         </style:style>';
+        $this->autostyles[$style_name] = $style;
+
+        // Group the frame so that they are stacked one on each other.
+        $this->doc .= '<text:p>';
+        if ( $display == NULL ) {
+            $this->doc .= '<draw:g>';
+        } else {
+            $this->doc .= '<draw:g draw:display="' . $display . '">';
+        }
+
+        // Draw a frame with the image in it, if required.
+        // FIXME: delete this part if 'background-image' in graphic style is working.
+        if ( $picture != NULL )
+        {
+            $this->doc .= '<draw:frame draw:style-name="'.$style_name.'_image_frame" draw:name="Bild1"
+                                text:anchor-type="paragraph"
+                                svg:x="'.$pic_positions [0].'" svg:y="'.$pic_positions [0].'"
+                                svg:width="'.$pic_width.'" svg:height="'.$pic_height.'"
+                                draw:z-index="1">
+                               <draw:image xlink:href="'.$pic_link.'"
+                                xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad"/>
+                                </draw:frame>';
+        }
+
+        // Draw a frame with a text box in it. the text box will be left opened
+        // to grow with the content (requires fo:min-height in $style_name).
+        $this->doc .= '<draw:frame draw:style-name="'.$style_name.'_text_frame" draw:name="Bild1"
+                            text:anchor-type="paragraph"
+                            svg:x="0cm" svg:y="0cm"
+                            svg:width="'.$width_abs.'cm" svg:height="10cm" ';
+        $this->doc .= 'draw:z-index="0">';
+        $this->doc .= '<draw:text-box ';
+
+        // If required use round corners.
+        if ( empty($radius) === false )
+            $this->doc .= 'draw:corner-radius="'.$radius.'" ';
+
+        $this->doc .= '>';
+        $this->p_open($style_name.'_text_box');
+    }
+
+    /**
+     * Simple helper function for creating a style $name setting the specfied font size $size.
+     *
+     * @author LarsDW223
+     */
+    protected function _odtBuildSizeStyle ($name, $size) {
+        $style = '<style:style style:name="'.$name.'" style:display-name="'.$name.'" style:family="text"><style:text-properties fo:font-size="'.$size.'" style:font-size-asian="'.$size.'" style:font-size-complex="'.$size.'"/></style:style>';
+        return $style;
+    }
+
+    /**
+     * This function closes a div/frame (previously opened with _odtDivOpenAsFrameUseCSS).
+     *
+     * @author LarsDW223
+     */
+    function _odtDivCloseAsFrame () {
+        $this->p_close();
+        $this->doc .= '</draw:text-box></draw:frame>';
+        $this->doc .= '</draw:g>';
+        $this->doc .= '</text:p>';
+    }
+}

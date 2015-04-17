@@ -1,12 +1,12 @@
 <?php
 
-// settings must be present and set appropriately for the language
-$lang['encoding']   = 'utf-8';
-$lang['direction']  = 'ltr';
-       
-// export button
-$lang['view'] = 'Exporter la page au format Open Document';
-
-// template not found in the directory
-$lang['tpl_not_found'] = 'ATTENTION: le modèle ODT "%s" n\'a pas été trouvé dans le répertoire de modèles "%s". L\'export est réalisé avec le modèle par défaut.';
-
+/**
+ * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
+ * 
+ * @author NicolasFriedli <nicolas@theologique.ch>
+ */
+$lang['encoding']              = 'utf-8';
+$lang['direction']             = 'gauche à droite';
+$lang['view']                  = 'Exporter la page en format Open Document';
+$lang['export_odt_button']     = 'exportation ODT';
+$lang['tpl_not_found']         = 'ATTENTION: le modèle ODT "%s" est introuvable dans le répertoire "%s". Le modèle par défaut est utilisé.';

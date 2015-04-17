@@ -1,10 +1,9 @@
 <?php
-/**
- * English language file
- *
- * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
- * @author     Aurelien Bompard <aurelien@bompard.org>
- */
 
-// for the configuration manager
-$lang['tpl_dir'] = 'Sous-répertoire des modèles dans le sélecteur de fichiers';
+/**
+ * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
+ * 
+ * @author NicolasFriedli <nicolas@theologique.ch>
+ */
+$lang['tpl_dir']               = 'Sous-répertoire dédié aux modèles dans le gestionnaire de médias';
+$lang['showexportbutton']      = 'Afficher le bouton d\'exportation ODT';

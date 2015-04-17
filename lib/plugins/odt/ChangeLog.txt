@@ -1,3 +1,42 @@
+﻿2015-04-10 Florian Lamml (info@florian-lamml.de)
+
+    * new odt.png (up-to-date style)
+    * some cleanups
+
+2015-03-31 LarsDW223
+
+    Improved CSS based functions:
+    * Divided CSS based functions into 3 parts/functions:
+      + A function importing CSS from a file
+      + A function which directly imports a CSS style (similar to HTML code like 'style="color:red;"')
+      + A function which takes the properties from an assoziative array (this is called by the other two)
+    * Added CSS based functions for opening a paragraph
+    * Added support for font-family, font-variant, letter-spacing and vertical-align
+      in CSS functions for opening a span and paragraph
+    * Added support for line-height in CSS based paragraph open functions
+    * Added support for font-size in percent (e.g. 'font-size:200%;') in CSS based span and paragraph
+      functions. This requires to save the common styles in ODT documents not using templates.
+
+2015-03-18 LarsDW223
+
+    * Added new helper class 'cssimport' for rudimentary CSS import (incomplete!).
+      The class support reading of CSS and DokuWiki replacement files. The CSS properties
+      can be queried by the ODT renderer to use it as parameters for ODT style definitions.
+    * Added new functions to renderer for CSS based span and div export:
+      _odtSpanOpenUseCSS/_odtSpanClose, _odtDivOpenAsFrameUseCSS/_odtDivCloseAsFrame
+
+2015-02-26 Florian Lamml (info@florian-lamml.de)
+
+    * changes to the pagetools-button
+
+2015-02-06 jaller94
+
+    * Valid Button for HTML5
+
+2014-11-24 intersel 
+
+    * Fix the "FIXME internalmedia:xxxx" problem for PDF
+
 2014-10-14 Florian Lamml (info@florian-lamml.de)
 
     * Change info.txt to plugin.info.txt - fix install error
@@ -96,4 +135,3 @@
 2008-03-04  Aurélien Bompard <aurelien@bompard.org>
 
 	* global: initial release
-
