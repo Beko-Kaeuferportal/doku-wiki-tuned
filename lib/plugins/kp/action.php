@@ -53,6 +53,9 @@ class action_plugin_kp extends DokuWiki_Action_Plugin {
     if(isset($_SERVER['HTTP_X_FORWARDED_FOR']))
       return $_SERVER['HTTP_X_FORWARDED_FOR'];
 
+    if(isset($_SERVER['HTTP_CF_CONNECTING_IP']))
+      return $_SERVER['HTTP_CF_CONNECTING_IP'];
+
     return $_SERVER['REMOTE_ADDR'];
   }
 
