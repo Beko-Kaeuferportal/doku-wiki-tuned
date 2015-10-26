@@ -8,7 +8,7 @@
 
 if(!defined('DOKU_INC')) die();
 
-class eeeeeeeplugin_kp extends DokuWiki_Action_Plugin {
+class action_plugin_kp extends DokuWiki_Action_Plugin {
   static $PUBLIC_WIKI_ID_MATCHER  = '/.*id=support.*/i';
   static $PUBLIC_WIKI_ALLOWED_IPS = array('217.110.41.43', '212.202.220.8', '83.236.161.184', '127.0.0.1');
 
