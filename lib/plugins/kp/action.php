@@ -32,7 +32,7 @@ class action_plugin_kp extends DokuWiki_Action_Plugin {
   }
 
   public function tocTest(Doku_Event &$html, $foo, $bar){
-    $html = '';
+    echo "TEST";
   }
 
   public function checkPublicDokuOnlyIntern(Doku_Event &$event, $param){
