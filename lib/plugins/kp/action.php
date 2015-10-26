@@ -32,6 +32,7 @@ class action_plugin_kp extends DokuWiki_Action_Plugin {
   }
 
   public function checkPublicDokuOnlyIntern(Doku_Event &$event, $param){
+    return '';
     if($this->isLoggedIn())
       return ;
 
