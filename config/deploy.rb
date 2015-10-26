@@ -14,7 +14,7 @@ colorize( capistrano_color_matchers )
 
 # configuration
 set :application, "it-wiki"
-set :domainname,  "www.kaeuferportal.wiki"
+set :domainname,  "kaeuferportal.wiki"
 set :repository,  "git@github.com:Beko-Kaeuferportal/doku-wiki-tuned.git"
 set :branch,      "master"
 
