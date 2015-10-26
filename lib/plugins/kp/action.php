@@ -8,18 +8,24 @@
 
 if(!defined('DOKU_INC')) die();
 
-class action_plugin_kp extends DokuWiki_Action_Plugin {
+class eeeeeeeplugin_kp extends DokuWiki_Action_Plugin {
   static $PUBLIC_WIKI_ID_MATCHER  = '/.*id=support.*/i';
   static $PUBLIC_WIKI_ALLOWED_IPS = array('217.110.41.43', '212.202.220.8', '83.236.161.184', '127.0.0.1');
 
   public function __construct(){
     $this->ensureHttps(); //can be done every time
+    if (!$this->isLoggedIn() && !$this->isHostAllowedToAccesPublicSupportArea())
+      $this->hideSidebar();
+  }
+
+  public function hideSidebar() {
+    global $conf;
+    $conf['sidebar'] = null;
   }
 
   public function register(Doku_Event_Handler &$controller) {
     //hook into befor show action for checking access rights
     $controller->register_hook('TPL_CONTENT_DISPLAY', 'BEFORE', $this, 'checkPublicDokuOnlyIntern');
-    $controller->register_hook('TPL_TOC_RENDER', 'BEFORE', $this, 'testToc');
   }
 
   private function ensureHttps(){
@@ -29,10 +35,6 @@ class action_plugin_kp extends DokuWiki_Action_Plugin {
       $redirect = "https://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
       header("Location: $redirect");
     }
-  }
-
-  public function testToc(Doku_Event &$event){
-    $event->data = [];
   }
 
   public function checkPublicDokuOnlyIntern(Doku_Event &$event, $param){
