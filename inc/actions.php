@@ -630,7 +630,7 @@ function act_export($act){
             $pre .= '<div class="dokuwiki export">' . DOKU_LF;
 
             // get toc
-            // $pre .= tpl_toc(true);
+            $pre .= tpl_toc(true);
 
             $headers['Content-Type'] = 'text/html; charset=utf-8';
             $output = p_wiki_xhtml($ID,$REV,false);
