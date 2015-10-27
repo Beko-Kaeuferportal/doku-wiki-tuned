@@ -24,7 +24,7 @@ if (!defined('DOKU_INC')) die();
 
             // display logo and wiki title in a link to the home page
             tpl_link(
-                wl(),
+                wl()."&id=support",
                 '<img src="'.$logo.'" '.$logoSize[3].' alt="" /> <span>'.$conf['title'].'</span>',
                 'accesskey="h" title="[H]"'
             );
