@@ -14,18 +14,18 @@ class action_plugin_kp extends DokuWiki_Action_Plugin {
 
   public function __construct(){
     $this->ensureHttps(); //can be done every time
-    if (!$this->isLoggedIn() && !$this->isHostAllowedToAccesPublicSupportArea())
-      $this->hideSidebar();
   }
 
   public function hideSidebar() {
     global $conf;
-    $conf['sidebar'] = null;
+    if (!$this->isLoggedIn() && !$this->isHostAllowedToAccesPublicSupportArea())
+      $conf['sidebar'] = null;
   }
 
   public function register(Doku_Event_Handler &$controller) {
     //hook into befor show action for checking access rights
     $controller->register_hook('TPL_CONTENT_DISPLAY', 'BEFORE', $this, 'checkPublicDokuOnlyIntern');
+    $controller->register_hook('AUTH_LOGIN_CHECK', 'AFTER', $this, 'hideSidebar');
   }
 
   private function ensureHttps(){
