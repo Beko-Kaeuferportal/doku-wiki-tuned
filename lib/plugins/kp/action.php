@@ -45,6 +45,7 @@ class action_plugin_kp extends DokuWiki_Action_Plugin {
     && !$this->isHostAllowedToAccesPublicSupportArea()){
       $event->preventDefault();
       html_login();
+      echo '<script type="text/javascript">var window.hideSidebar=true;</script>';
     }
   }
 
