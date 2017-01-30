@@ -13,7 +13,8 @@ class action_plugin_kp extends DokuWiki_Action_Plugin {
   static $PUBLIC_WIKI_ALLOWED_IPS = array('217.110.41.43', '212.202.220.8', '83.236.161.184', '127.0.0.1', '82.119.166.69');
 
   public function __construct(){
-    $this->ensureHttps(); //can be done every time
+    if ($_SERVER['SERVER_NAME'] != 'localhost')
+      $this->ensureHttps(); //can be done every time
   }
 
   public function hideSidebar() {
