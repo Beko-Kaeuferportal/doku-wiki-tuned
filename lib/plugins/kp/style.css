@@ -19,10 +19,16 @@ body #dokuwiki__header h1 a{
   display: block;
   font-size: 19px;
   font-style: italic;
-  height: 50px;
+  height: 34px;
   padding-top: 24px;
   position: absolute;
   width: 200px;
+}
+
+@media (-webkit-min-device-pixel-ratio: 1.5), (min-resolution: 144dpi) {
+  body #dokuwiki__header h1 a{
+    background-image: url("img/kp-logo.png");
+  }
 }
 
 a.support{
